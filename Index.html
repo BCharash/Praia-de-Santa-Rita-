@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <title>Santa Rita Marine Dashboard</title>
+
+  <!-- iOS Web App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Santa Rita Surf" />
+  <link rel="apple-touch-icon" href="https://img.icons8.com/color/180/surf.png" />
+  <meta name="theme-color" content="#0f172a" />
+  
+  <!-- Tailwind CSS CDN for visual styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Safe Area Padding for iOS notch and Home Indicator */
+    body { 
+      background-color: #0f172a; 
+      color: #f8fafc; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding-top: max(1rem, env(safe-area-inset-top));
+      padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .card { 
+      background: rgba(30, 41, 59, 0.7); 
+      border: 1px solid rgba(255, 255, 255, 0.1); 
+      backdrop-filter: blur(12px); 
+      -webkit-backdrop-filter: blur(12px);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header Section -->
+  <header class="max-w-7xl w-full mx-auto mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-700/60 pb-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-cyan-400 flex items-center gap-2">
+        <span>Praia de Santa Rita</span>
+      </h1>
+      <p class="text-xs text-slate-400 mt-0.5">Santa Cruz, Portugal • 39.172° N, -9.362° W</p>
+    </div>
+    
+    <!-- Mobile-Optimized Touch Segment Control -->
+    <div class="w-full sm:w-auto flex items-center justify-between bg-slate-800/90 p-1 rounded-xl border border-slate-700">
+      <button onclick="changeTimeframe(-3)" id="btn-past" class="flex-1 sm:flex-none px-3 py-2 text-xs font-semibold rounded-lg hover:bg-slate-700/50 transition active:scale-95">Past 3D</button>
+      <button onclick="changeTimeframe(0)" id="btn-today" class="flex-1 sm:flex-none px-3 py-2 text-xs font-semibold rounded-lg bg-cyan-600 text-white shadow active:scale-95">Today</button>
+      <button onclick="changeTimeframe(3)" id="btn-future" class="flex-1 sm:flex-none px-3 py-2 text-xs font-semibold rounded-lg hover:bg-slate-700/50 transition active:scale-95">Next 3D</button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl w-full mx-auto space-y-4 flex-1">
+
+    <!-- Primary Metrics Grid (2x2 on Mobile, 4x1 on Desktop) -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      
+      <!-- Air Temp -->
+      <div class="card p-3.5 rounded-2xl flex flex-col justify-between">
+        <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Air Temp</span>
+        <div class="text-2xl sm:text-3xl font-extrabold mt-1 text-amber-400" id="air-temp">-- °C</div>
+        <div class="text-[11px] text-slate-400 mt-1 truncate" id="weather-desc">Loading...</div>
+      </div>
+
+      <!-- Water Temp -->
+      <div class="card p-3.5 rounded-2xl flex flex-col justify-between">
+        <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Water Temp</span>
+        <div class="text-2xl sm:text-3xl font-extrabold mt-1 text-teal-400" id="water-temp">-- °C</div>
+        <div class="text-[11px] text-slate-400 mt-1 truncate">Sea Surface</div>
+      </div>
+
+      <!-- Surf & Swell -->
+      <div class="card p-3.5 rounded-2xl flex flex-col justify-between">
+        <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Surf Swell</span>
+        <div class="text-2xl sm:text-3xl font-extrabold mt-1 text-blue-400" id="surf-height">-- m</div>
+        <div class="text-[11px] text-slate-400 mt-1 truncate" id="surf-period">Period: -- s</div>
+      </div>
+
+      <!-- Wind Condition -->
+      <div class="card p-3.5 rounded-2xl flex flex-col justify-between">
+        <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Wind</span>
+        <div class="text-2xl sm:text-3xl font-extrabold mt-1 text-indigo-300" id="wind-speed">-- kt</div>
+        <div class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold w-fit" id="wind-badge">
+          <span id="wind-dir" class="truncate">--</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Visual Tide Tracker Banner -->
+    <section class="card p-4 rounded-2xl border-l-4 border-l-cyan-500">
+      <div class="flex justify-between items-center">
+        <h2 class="text-xs font-bold tracking-wider uppercase text-slate-300">Tide Cycle</h2>
+        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-800/60" id="tide-status">Updating...</span>
+      </div>
+      <div class="w-full bg-slate-800/80 h-2.5 rounded-full overflow-hidden relative mt-3">
+        <div id="tide-bar" class="bg-gradient-to-r from-cyan-600 to-blue-400 h-full w-1/2 transition-all duration-500 rounded-full"></div>
+      </div>
+      <div class="flex justify-between text-[11px] text-slate-400 mt-2 font-medium">
+        <span>Low Tide</span>
+        <span class="font-bold text-slate-200" id="current-tide-height">Height: -- m</span>
+        <span>High Tide</span>
+      </div>
+    </section>
+
+    <!-- Main Dynamic Chart -->
+    <section class="card p-4 rounded-2xl flex flex-col">
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3">
+        <h2 class="text-xs font-bold tracking-wider uppercase text-slate-300">Conditions Forecast & Timeline</h2>
+        <div class="text-[10px] text-slate-400 flex items-center justify-between sm:justify-end gap-3">
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-blue-500 rounded-full inline-block"></span> Surf (m)</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-cyan-400 rounded-full inline-block"></span> Tide (m)</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-amber-400 rounded-full inline-block"></span> Air (°C)</span>
+        </div>
+      </div>
+      <div class="relative w-full h-64 sm:h-80">
+        <canvas id="marineChart"></canvas>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const LAT = 39.172;
+    const LON = -9.362;
+    let chartInstance = null;
+
+    function getWindQuality(deg) {
+      if (deg >= 30 && deg <= 120) {
+        return { label: 'Offshore', bg: 'bg-emerald-950/80', text: 'text-emerald-400', border: 'border-emerald-800/80' };
+      }
+      if ((deg >= 330 || deg < 30) || (deg > 120 && deg <= 180)) {
+        return { label: 'Cross-shore', bg: 'bg-amber-950/80', text: 'text-amber-400', border: 'border-amber-800/80' };
+      }
+      return { label: 'Onshore', bg: 'bg-rose-950/80', text: 'text-rose-400', border: 'border-rose-800/80' };
+    }
+
+    function degToCompass(num) {
+      const val = Math.floor((num / 22.5) + 0.5);
+      const arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+      return arr[(val % 16)];
+    }
+
+    async function loadDashboardData(offsetDays = 0) {
+      const pastDays = offsetDays < 0 ? Math.abs(offsetDays) + 1 : 1;
+      const forecastDays = offsetDays > 0 ? offsetDays + 1 : 1;
+
+      const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
+        `&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code` +
+        `&hourly=temperature_2m,wind_speed_10m,wind_direction_10m` +
+        `&past_days=${pastDays}&forecast_days=${forecastDays}&wind_speed_unit=kn&timezone=Europe%2FLisbon`;
+
+      const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}` +
+        `&current=wave_height,wave_period,sea_surface_temperature,sea_level_height_msl` +
+        `&hourly=wave_height,wave_period,sea_surface_temperature,sea_level_height_msl` +
+        `&past_days=${pastDays}&forecast_days=${forecastDays}&timezone=Europe%2FLisbon`;
+
+      try {
+        const [weatherRes, marineRes] = await Promise.all([
+          fetch(weatherUrl).then(r => r.json()),
+          fetch(marineUrl).then(r => r.json())
+        ]);
+
+        updateCards(weatherRes.current, marineRes.current);
+        renderChart(weatherRes.hourly, marineRes.hourly);
+      } catch (err) {
+        console.error("Error fetching marine metrics:", err);
+      }
+    }
+
+    function updateCards(weather, marine) {
+      document.getElementById('air-temp').innerText = `${weather.temperature_2m}°C`;
+      document.getElementById('water-temp').innerText = `${marine.sea_surface_temperature}°C`;
+      document.getElementById('surf-height').innerText = `${marine.wave_height} m`;
+      document.getElementById('surf-period').innerText = `Period: ${marine.wave_period}s`;
+      document.getElementById('wind-speed').innerText = `${weather.wind_speed_10m} kt`;
+
+      const windQual = getWindQuality(weather.wind_direction_10m);
+      const compass = degToCompass(weather.wind_direction_10m);
+      const badgeEl = document.getElementById('wind-badge');
+      
+      badgeEl.className = `mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] font-bold ${windQual.bg} ${windQual.text} ${windQual.border}`;
+      document.getElementById('wind-dir').innerText = `${compass} (${weather.wind_direction_10m}°) • ${windQual.label}`;
+
+      const seaLevel = marine.sea_level_height_msl || 0;
+      document.getElementById('current-tide-height').innerText = `MSL: ${seaLevel.toFixed(2)} m`;
+      
+      const percentage = Math.min(Math.max(((seaLevel + 1.5) / 3.0) * 100, 5), 100);
+      document.getElementById('tide-bar').style.width = `${percentage}%`;
+      document.getElementById('tide-status').innerText = seaLevel >= 0 ? "High Tide Cycle" : "Low Tide Cycle";
+      
+      document.getElementById('weather-desc').innerText = `Wind ${weather.wind_speed_10m} kt ${compass}`;
+    }
+
+    function renderChart(hourlyWeather, hourlyMarine) {
+      const ctx = document.getElementById('marineChart').getContext('2d');
+      const labels = hourlyWeather.time.map(t => t.split('T')[1].slice(0, 5));
+
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Wave Height (m)',
+              data: hourlyMarine.wave_height,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.2)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Tide MSL (m)',
+              data: hourlyMarine.sea_level_height_msl,
+              borderColor: '#22d3ee',
+              borderDash: [4, 4],
+              tension: 0.4,
+              fill: false,
+              pointRadius: 0,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Air Temp (°C)',
+              data: hourlyWeather.temperature_2m,
+              borderColor: '#fbbf24',
+              tension: 0.3,
+              fill: false,
+              pointRadius: 0,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { size: 10 }, maxTicksLimit: 8 }
+            },
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              grid: { drawOnChartArea: false },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    function changeTimeframe(offset) {
+      document.querySelectorAll('header button').forEach(b => {
+        b.className = "flex-1 sm:flex-none px-3 py-2 text-xs font-semibold rounded-lg hover:bg-slate-700/50 transition active:scale-95";
+      });
+      
+      if (offset === -3) document.getElementById('btn-past').className = "flex-1 sm:flex-none px-3 py-2 text-xs font-semibold rounded-lg bg-cyan-600 text-white shadow active:scale-95";
+      if (offset === 0) document.getElementById('btn-today').className = "flex-1 sm:flex-none px-3 py-2 text-xs font-semibold rounded-lg bg-cyan-600 text-white shadow active:scale-95";
+      if (offset === 3) document.getElementById('btn-future').className = "flex-1 sm:flex-none px-3 py-2 text-xs font-semibold rounded-lg bg-cyan-600 text-white shadow active:scale-95";
+
+      loadDashboardData(offset);
+    }
+
+    loadDashboardData(0);
+  </script>
+</body>
+</html>
