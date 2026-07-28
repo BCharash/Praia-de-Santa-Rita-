@@ -132,7 +132,7 @@
       color: #ff4d6d;
     }
 
-    /* Top Weather & UV Summary Box */
+    /* Top Weather, Humidity & UV Summary Box */
     .weather-summary-box {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -164,6 +164,13 @@
     .weather-desc-sub {
       font-size: 0.78rem;
       color: var(--text-dim);
+    }
+
+    .humidity-val {
+      font-size: 0.76rem;
+      color: var(--text-sub);
+      font-weight: 600;
+      margin-top: 2px;
     }
 
     .uv-box {
@@ -516,13 +523,14 @@
     <span id="alert-details-link">Details &rsaquo;</span>
   </div>
 
-  <!-- Top Weather & Peak/Current UV Summary -->
+  <!-- Top Weather, Humidity & Peak/Current UV Summary -->
   <div class="weather-summary-box">
     <div class="weather-summary-left">
       <div class="weather-icon-large" id="main-weather-icon">☀️</div>
       <div>
         <div class="weather-desc-title" id="main-weather-text">Loading...</div>
         <div class="weather-desc-sub" id="main-weather-sub">Coastal Conditions</div>
+        <div class="humidity-val" id="main-humidity-val">💧 Humidity: --%</div>
       </div>
     </div>
     <div class="uv-box">
@@ -618,6 +626,7 @@
       PT: {
         appTitle: "Praias de Portugal",
         coastalConditions: "Condições Costeiras",
+        humidity: "Humidade",
         uvIndex: "Índice UV",
         peak: "Pico",
         now: "Agora",
@@ -645,6 +654,7 @@
       EN: {
         appTitle: "Praias de Portugal",
         coastalConditions: "Coastal Conditions",
+        humidity: "Humidity",
         uvIndex: "UV Index",
         peak: "Peak",
         now: "Now",
@@ -767,7 +777,7 @@
 
     async function loadData() {
       try {
-        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}&hourly=temperature_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,weather_code,uv_index,is_day&daily=temperature_2m_max,temperature_2m_min,uv_index_max,wind_gusts_10m_max&timezone=auto&past_days=3&forecast_days=8`;
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,weather_code,uv_index,is_day&daily=temperature_2m_max,temperature_2m_min,uv_index_max,wind_gusts_10m_max&timezone=auto&past_days=3&forecast_days=8`;
         const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LNG}&hourly=wave_height,wave_period,sea_surface_temperature,sea_level_height_msl&timezone=auto&past_days=3&forecast_days=8`;
 
         const [wRes, mRes] = await Promise.all([fetch(weatherUrl), fetch(marineUrl)]);
@@ -876,6 +886,10 @@
       const wInfo = decodeWMO(wCode, isDay, now);
       document.getElementById('main-weather-icon').innerHTML = wInfo.icon;
       document.getElementById('main-weather-text').textContent = wInfo.text;
+
+      // Relative Humidity
+      const humidity = weatherData.hourly.relative_humidity_2m ? weatherData.hourly.relative_humidity_2m[idx] : null;
+      document.getElementById('main-humidity-val').textContent = humidity !== null ? `💧 ${t.humidity}: ${Math.round(humidity)}%` : '';
 
       // UV Display: Peak & Current
       const todayMaxUV = weatherData.daily.uv_index_max ? weatherData.daily.uv_index_max[3] : 0;
