@@ -25,7 +25,7 @@
       --color-air: #ffb703;
       --color-wind: #00b4d8;
       --color-sea: #4cc9f0;
-      --color-surf: #b5179e;
+      --color-surf: #f72585;
       --color-tide: #4895ef;
     }
 
@@ -979,7 +979,6 @@
       }
     };
 
-    // --- FIX FOR FLOATING TOOLTIP POSITIONING BUG ---
     function handleExternalTooltip(context) {
       const tooltipEl = document.getElementById('custom-tooltip');
       const { chart, tooltip } = context;
@@ -1007,11 +1006,9 @@
       const tooltipWidth = tooltipEl.offsetWidth || 150;
       const tooltipHeight = tooltipEl.offsetHeight || 80;
 
-      // Calculate absolute screen coordinates
       let left = rect.left + tooltip.caretX + 12;
       let top = rect.top + tooltip.caretY - (tooltipHeight / 2);
 
-      // Clamp coordinates so the box never spills off the right or bottom of the screen
       if (left + tooltipWidth > window.innerWidth - 10) {
         left = rect.left + tooltip.caretX - tooltipWidth - 12;
       }
@@ -1025,7 +1022,6 @@
       tooltipEl.classList.add('visible');
     }
 
-    // Custom Interactive Legend Renderer
     function renderCustomLegend(chart, containerId) {
       const container = document.getElementById(containerId);
       container.innerHTML = '';
@@ -1142,7 +1138,7 @@
           labels: timeLabels,
           datasets: [
             { label: l.waterTemp, data: seaTemps, borderColor: '#4cc9f0', tension: 0.3, yAxisID: 'y1' },
-            { label: l.surfHeight, data: waveHeights, borderColor: '#b5179e', borderWidth: 2.5, tension: 0.3, yAxisID: 'y2' },
+            { label: l.surfHeight, data: waveHeights, borderColor: '#f72585', borderWidth: 2.5, tension: 0.3, yAxisID: 'y2' },
             { label: l.tide, data: tides, borderColor: '#4895ef', borderDash: [2, 2], tension: 0.4, yAxisID: 'y2' }
           ]
         },
@@ -1171,8 +1167,8 @@
               type: 'linear', 
               position: 'right', 
               grid: { display: false }, 
-              ticks: { color: '#b5179e', font: { size: 10 } },
-              title: { display: true, text: 'm', color: '#b5179e', font: { size: 10 } }
+              ticks: { color: '#f72585', font: { size: 10 } },
+              title: { display: true, text: 'm', color: '#f72585', font: { size: 10 } }
             }
           },
           plugins: {
