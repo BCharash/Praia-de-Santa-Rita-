@@ -690,8 +690,15 @@
     let chart1Instance = null;
     let chart2Instance = null;
     let activeAlertMessage = "";
+    let tooltipTimeout = null;
+
+    function hideTooltip() {
+      const tooltipEl = document.getElementById('custom-tooltip');
+      if (tooltipEl) tooltipEl.classList.remove('visible');
+    }
 
     function toggleLanguage() {
+      hideTooltip();
       currentLang = currentLang === 'PT' ? 'EN' : 'PT';
       localStorage.setItem('appLanguage', currentLang);
       applyLanguageUI();
@@ -941,6 +948,7 @@
     }
 
     function setTimeFilter(filter) {
+      hideTooltip();
       currentFilter = filter;
       document.querySelectorAll('.time-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('onclick').includes(filter));
@@ -1008,6 +1016,8 @@
       const tooltipEl = document.getElementById('custom-tooltip');
       const { chart, tooltip } = context;
 
+      if (tooltipTimeout) clearTimeout(tooltipTimeout);
+
       if (tooltip.opacity === 0) {
         tooltipEl.classList.remove('visible');
         return;
@@ -1045,6 +1055,11 @@
       tooltipEl.style.left = `${left}px`;
       tooltipEl.style.top = `${top}px`;
       tooltipEl.classList.add('visible');
+
+      // Auto-hide popup after 3.5s of touch inactivity
+      tooltipTimeout = setTimeout(() => {
+        tooltipEl.classList.remove('visible');
+      }, 3500);
     }
 
     function renderCustomLegend(chart, containerId) {
@@ -1067,6 +1082,7 @@
         item.appendChild(label);
 
         item.onclick = () => {
+          hideTooltip();
           const isVisible = chart.isDatasetVisible(i);
           chart.setDatasetVisibility(i, !isVisible);
           chart.update();
@@ -1220,6 +1236,13 @@
         updateWeatherStripAlignment(stepIndices, times, weatherCodes, isDayList, windDirections);
       }, 50);
     }
+
+    // Dismiss tooltip when tapping outside canvas elements
+    document.addEventListener('touchstart', (e) => {
+      if (!e.target.closest('canvas')) {
+        hideTooltip();
+      }
+    }, { passive: true });
 
     document.addEventListener('DOMContentLoaded', () => {
       applyLanguageUI();
