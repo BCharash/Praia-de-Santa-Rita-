@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Praias de Portugal</title>
@@ -20,6 +18,13 @@
       --text-main: #f8f9fa;
       --text-sub: #90e0ef;
       --text-dim: #a0aab2;
+
+      /* Colors matching chart line datasets */
+      --color-air: #ffb703;
+      --color-wind: #00b4d8;
+      --color-sea: #4cc9f0;
+      --color-surf: #b5179e;
+      --color-tide: #4895ef;
     }
 
     * {
@@ -43,7 +48,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       padding-bottom: 8px;
       border-bottom: 1px solid var(--card-border);
     }
@@ -60,6 +65,115 @@
       color: var(--text-dim);
     }
 
+    /* Weather Warning Banner */
+    .alert-banner {
+      display: none;
+      background: rgba(255, 183, 3, 0.15);
+      border: 1px solid #ffb703;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      color: #ffb703;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .alert-banner.visible {
+      display: flex;
+    }
+
+    .alert-banner.yellow {
+      background: rgba(255, 183, 3, 0.15);
+      border-color: #ffb703;
+      color: #ffb703;
+    }
+
+    .alert-banner.orange {
+      background: rgba(251, 133, 0, 0.2);
+      border-color: #fb8500;
+      color: #fb8500;
+    }
+
+    .alert-banner.red {
+      background: rgba(230, 57, 70, 0.25);
+      border-color: #e63946;
+      color: #ff4d6d;
+    }
+
+    /* Top Weather & UV Summary Box */
+    .weather-summary-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .weather-summary-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .weather-icon-large {
+      font-size: 2.2rem;
+      line-height: 1;
+    }
+
+    .weather-desc-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .weather-desc-sub {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+
+    .uv-box {
+      text-align: right;
+      border-left: 1px solid var(--card-border);
+      padding-left: 14px;
+    }
+
+    .uv-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .uv-val {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .uv-high-text {
+      font-size: 0.7rem;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    .uv-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 2px;
+      text-transform: uppercase;
+    }
+
+    /* Metrics Grid & Graph-Matched Card Accents */
     .metrics-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -78,6 +192,11 @@
       position: relative;
     }
 
+    .card.air-card { border-left: 4px solid var(--color-air); }
+    .card.wind-card { border-left: 4px solid var(--color-wind); }
+    .card.sea-card { border-left: 4px solid var(--color-sea); }
+    .card.surf-card { border-left: 4px solid var(--color-surf); }
+
     .card-title {
       font-size: 0.75rem;
       text-transform: uppercase;
@@ -87,10 +206,14 @@
       font-weight: 600;
     }
 
+    .air-card .card-title, .air-card .card-primary { color: var(--color-air); }
+    .wind-card .card-title, .wind-card .card-primary { color: var(--color-wind); }
+    .sea-card .card-title, .sea-card .card-primary { color: var(--color-sea); }
+    .surf-card .card-title, .surf-card .card-primary { color: var(--color-surf); }
+
     .card-primary {
       font-size: 1.4rem;
       font-weight: 700;
-      color: var(--text-main);
     }
 
     .card-sub {
@@ -122,7 +245,7 @@
       height: 0;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent;
-      border-bottom: 18px solid var(--accent-blue);
+      border-bottom: 18px solid var(--color-wind);
       transform-origin: center 12px;
       transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -184,6 +307,40 @@
       font-size: 0.85rem;
       font-weight: 600;
       color: var(--text-sub);
+    }
+
+    /* Weather Icon Strip Aligned to Graph X-Axis */
+    .weather-icon-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      margin-bottom: 6px;
+      border-bottom: 1px dashed var(--card-border);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .weather-strip-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      text-align: center;
+    }
+
+    /* Moon Styling */
+    .moon-icon {
+      color: #fff3bf;
+      filter: drop-shadow(0 0 3px rgba(255, 243, 191, 0.7));
+      display: inline-block;
+    }
+
+    .weather-strip-item .icon {
+      font-size: 1.1rem;
+      margin: 1px 0;
+      line-height: 1;
     }
 
     .custom-legend {
@@ -248,9 +405,57 @@
     .floating-tooltip.visible {
       opacity: 1;
     }
-  </style>
-</head>
-<body>
+
+    /* Alert Dialog Overlay */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 450px;
+      width: 100%;
+    }
+
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .modal-body {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      line-height: 1.5;
+      margin-bottom: 16px;
+      white-space: pre-line;
+    }
+
+    .modal-close-btn {
+      background: var(--card-border);
+      color: var(--text-main);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      float: right;
+    }
+  </style></head><body>
 
   <header>
     <div>
@@ -259,14 +464,38 @@
     </div>
   </header>
 
+  <!-- Dynamic Official IPMA Weather Alert Banner -->
+  <div class="alert-banner" id="alert-banner" onclick="openAlertModal()">
+    <span id="alert-banner-text">⚠️ IPMA Weather Warning</span>
+    <span>Details &rsaquo;</span>
+  </div>
+
+  <!-- Top Weather & Peak/Current UV Summary -->
+  <div class="weather-summary-box">
+    <div class="weather-summary-left">
+      <div class="weather-icon-large" id="main-weather-icon">☀️</div>
+      <div>
+        <div class="weather-desc-title" id="main-weather-text">Loading...</div>
+        <div class="weather-desc-sub" id="main-weather-sub">Coastal Conditions</div>
+      </div>
+    </div>
+    <div class="uv-box">
+      <div class="uv-title">UV Index</div>
+      <div class="uv-val" id="uv-index-max-val">-- Peak</div>
+      <div class="uv-high-text" id="uv-index-now-val">Now: --</div>
+      <div class="uv-badge" id="uv-badge">--</div>
+    </div>
+  </div>
+
+  <!-- Metrics Grid -->
   <section class="metrics-grid">
-    <div class="card">
+    <div class="card air-card">
       <div class="card-title">Air Temp</div>
       <div class="card-primary" id="air-temp">--°C</div>
       <div class="card-sub" id="air-min-max">Min: --° / Max: --°</div>
     </div>
 
-    <div class="card">
+    <div class="card wind-card">
       <div class="card-title">Wind</div>
       <div class="wind-card-body">
         <div>
@@ -280,13 +509,13 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card sea-card">
       <div class="card-title">Sea Temp</div>
       <div class="card-primary" id="sea-temp">--°C</div>
       <div class="card-sub">Surface Water</div>
     </div>
 
-    <div class="card">
+    <div class="card surf-card">
       <div class="card-title">Surf Swell</div>
       <div class="card-primary" id="surf-height">-- m</div>
       <div class="card-sub" id="surf-period">Period: -- s</div>
@@ -301,11 +530,13 @@
     <button class="time-btn" onclick="setTimeFilter('next7d')">Next 7d</button>
   </nav>
 
+  <!-- Atmospheric Chart Container with Aligned Graphical Weather Bar -->
   <div class="chart-container">
     <div class="chart-header">
       <div class="chart-title">Atmospheric & Wind</div>
       <div class="custom-legend" id="legend-chart1"></div>
     </div>
+    <div class="weather-icon-strip" id="weather-icon-strip"></div>
     <canvas id="chart1"></canvas>
   </div>
 
@@ -319,10 +550,21 @@
 
   <div class="floating-tooltip" id="custom-tooltip"></div>
 
+  <!-- Alert Dialog Overlay -->
+  <div class="modal-overlay" id="alert-modal">
+    <div class="modal-content" id="modal-content-box">
+      <div class="modal-title" id="modal-alert-title">Official IPMA Advisory</div>
+      <div class="modal-body" id="modal-alert-body">
+        Loading IPMA advisories...
+      </div>
+      <button class="modal-close-btn" onclick="closeAlertModal()">Close</button>
+    </div>
+  </div>
+
   <script>
     const LAT = 39.172;
     const LNG = -9.362;
-    // Hydrographic Zero Offset (+2.08m) converts Open-Meteo MSL to Portuguese Chart Datum (ZH)
+    const LISBON_IPMA_CODE = "LSB";
     const HYDROGRAPHIC_ZERO_OFFSET = 2.08;
 
     let weatherData = null;
@@ -332,16 +574,56 @@
     let chart1Instance = null;
     let chart2Instance = null;
     let tooltipTimeout = null;
+    let activeAlertMessage = "";
+
+    // Astronomical Moon Phase Calculation
+    function getMoonPhaseIcon(date) {
+      const synodic = 29.53058770576;
+      const knownNewMoon = new Date('2000-01-06T18:14:00Z').getTime();
+      const diffDays = (date.getTime() - knownNewMoon) / (1000 * 60 * 60 * 24);
+      const phase = (diffDays % synodic + synodic) % synodic;
+
+      if (phase < 1.84 || phase >= 27.69) return '🌑';
+      if (phase < 5.53) return '🌒';
+      if (phase < 9.22) return '🌓';
+      if (phase < 12.91) return '🌔';
+      if (phase < 16.61) return '🌕';
+      if (phase < 20.30) return '🌖';
+      if (phase < 24.00) return '🌗';
+      return '🌘';
+    }
+
+    // Decodes WMO weather code taking into consideration day vs. night and moon phase
+    function decodeWMO(code, isDay = 1, dateObj = new Date()) {
+      const moonIcon = `<span class="moon-icon">${getMoonPhaseIcon(dateObj)}</span>`;
+      
+      if (code === 0) return { icon: isDay ? '☀️' : moonIcon, text: 'Clear' };
+      if (code === 1 || code === 2) return { icon: isDay ? '🌤️' : moonIcon, text: 'Partly Cloudy' };
+      if (code === 3) return { icon: '☁️', text: 'Overcast' };
+      if (code >= 45 && code <= 48) return { icon: '🌫️', text: 'Foggy' };
+      if (code >= 51 && code <= 55) return { icon: '🌦️', text: 'Drizzle' };
+      if (code >= 61 && code <= 65) return { icon: '🌧️', text: 'Rain' };
+      if (code >= 80 && code <= 82) return { icon: '🌦️', text: 'Showers' };
+      if (code >= 95) return { icon: '🌩️', text: 'Thunderstorm' };
+      return { icon: isDay ? '🌤️' : moonIcon, text: 'Fair' };
+    }
+
+    function getUVBadge(uv) {
+      if (uv <= 2) return { text: 'Low', bg: '#38b000', color: '#fff' };
+      if (uv <= 5) return { text: 'Moderate', bg: '#ffb703', color: '#000' };
+      if (uv <= 7) return { text: 'High', bg: '#fb8500', color: '#fff' };
+      if (uv <= 10) return { text: 'Very High', bg: '#d00000', color: '#fff' };
+      return { text: 'Extreme', bg: '#9d4edd', color: '#fff' };
+    }
 
     function setCompass(degrees) {
       const arrow = document.getElementById('compass-arrow');
-      arrow.style.transform = `rotate(${degrees}deg)`;
+      if (arrow) arrow.style.transform = `rotate(${degrees}deg)`;
     }
 
     async function loadData() {
       try {
-        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}&hourly=temperature_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=auto&past_days=3&forecast_days=8`;
-        // Request sea_surface_temperature explicitly along with wave & sea level parameters
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}&hourly=temperature_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,weather_code,uv_index,is_day&daily=temperature_2m_max,temperature_2m_min,uv_index_max,wind_gusts_10m_max&timezone=auto&past_days=3&forecast_days=8`;
         const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LNG}&hourly=wave_height,wave_period,sea_surface_temperature,sea_level_height_msl&timezone=auto&past_days=3&forecast_days=8`;
 
         const [wRes, mRes] = await Promise.all([fetch(weatherUrl), fetch(marineUrl)]);
@@ -350,27 +632,25 @@
 
         processWaterTemperatures();
         updateCurrentMetrics();
+        fetchIPMAAlerts();
         renderCharts();
       } catch (err) {
         console.error("Error fetching marine/weather data:", err);
       }
     }
 
-    // Handles array backfilling for missing or null sea surface temperature values
     function processWaterTemperatures() {
       if (!marineData || !marineData.hourly) return;
       const rawTemps = marineData.hourly.sea_surface_temperature || [];
       processedSeaTemps = new Array(rawTemps.length);
 
-      let lastValid = 18.5; // Fallback baseline
-      // Forward pass
+      let lastValid = 18.5;
       for (let i = 0; i < rawTemps.length; i++) {
         if (rawTemps[i] !== null && rawTemps[i] !== undefined && rawTemps[i] > 0) {
           lastValid = rawTemps[i];
         }
         processedSeaTemps[i] = lastValid;
       }
-      // Backward pass to catch leading nulls
       for (let i = rawTemps.length - 1; i >= 0; i--) {
         if (rawTemps[i] !== null && rawTemps[i] !== undefined && rawTemps[i] > 0) {
           lastValid = rawTemps[i];
@@ -381,20 +661,102 @@
       }
     }
 
+    // Fetches official warnings directly from IPMA Open Data API
+    async function fetchIPMAAlerts() {
+      try {
+        const ipmaUrl = 'https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json';
+        const res = await fetch(ipmaUrl);
+        const warnings = await res.json();
+
+        // Filter active warnings for District of Lisbon (LSB) that are not Green ('Amarelo', 'Laranja', 'Vermelho')
+        const activeLisbonWarnings = warnings.filter(w => 
+          w.idAreaAviso === LISBON_IPMA_CODE && 
+          w.awarenessLevelID !== 'green'
+        );
+
+        const banner = document.getElementById('alert-banner');
+        const bannerText = document.getElementById('alert-banner-text');
+
+        if (activeLisbonWarnings.length === 0) {
+          banner.classList.remove('visible');
+          return;
+        }
+
+        // Hierarchy of colors: Red > Orange > Yellow
+        let highestLevel = 'yellow';
+        if (activeLisbonWarnings.some(w => w.awarenessLevelID === 'red')) highestLevel = 'red';
+        else if (activeLisbonWarnings.some(w => w.awarenessLevelID === 'orange')) highestLevel = 'orange';
+
+        const summaryTitles = activeLisbonWarnings.map(w => {
+          const type = w.awarenessTypeName || w.title || 'Aviso';
+          const level = w.awarenessLevelID ? w.awarenessLevelID.toUpperCase() : '';
+          return `${type} (${level})`;
+        });
+
+        bannerText.textContent = `⚠️ IPMA Warning: ${summaryTitles.join(' | ')}`;
+        
+        // Reset classes
+        banner.className = 'alert-banner visible ' + highestLevel;
+
+        // Build details modal text
+        const details = activeLisbonWarnings.map(w => {
+          const start = w.startTime ? new Date(w.startTime).toLocaleString('pt-PT') : '';
+          const end = w.endTime ? new Date(w.endTime).toLocaleString('pt-PT') : '';
+          const text = w.text || w.awarenessTypeName || 'Aviso Meteorológico IPMA';
+          return `• OFFICIAL IPMA ALERT (${w.awarenessLevelID?.toUpperCase()}): ${text}\n  Valid: ${start} to ${end}`;
+        });
+
+        activeAlertMessage = details.join('\n\n');
+
+      } catch (err) {
+        console.warn("Could not retrieve IPMA alerts:", err);
+      }
+    }
+
+    function openAlertModal() {
+      document.getElementById('modal-alert-body').textContent = activeAlertMessage;
+      document.getElementById('alert-modal').classList.add('visible');
+    }
+
+    function closeAlertModal() {
+      document.getElementById('alert-modal').classList.remove('visible');
+    }
+
     function updateCurrentMetrics() {
       if (!weatherData || !weatherData.hourly) return;
 
       const now = new Date();
       const currentHourStr = now.toISOString().slice(0, 13) + ":00";
       let idx = weatherData.hourly.time.findIndex(t => t.startsWith(currentHourStr));
-      if (idx === -1) idx = 72; // Index corresponding to Today 00:00 with past_days=3
+      if (idx === -1) idx = 72;
 
+      const isDay = weatherData.hourly.is_day ? weatherData.hourly.is_day[idx] : 1;
+      const wCode = weatherData.hourly.weather_code[idx] ?? 0;
+      const wInfo = decodeWMO(wCode, isDay, now);
+      document.getElementById('main-weather-icon').innerHTML = wInfo.icon;
+      document.getElementById('main-weather-text').textContent = wInfo.text;
+
+      // UV Display: Peak & Current
+      const todayMaxUV = weatherData.daily.uv_index_max ? weatherData.daily.uv_index_max[3] : 0;
+      const currentUV = weatherData.hourly.uv_index ? weatherData.hourly.uv_index[idx] : 0;
+
+      document.getElementById('uv-index-max-val').textContent = `${todayMaxUV.toFixed(1)} Peak`;
+      document.getElementById('uv-index-now-val').textContent = `Now: ${currentUV.toFixed(1)}`;
+
+      const uvInfo = getUVBadge(todayMaxUV);
+      const uvBadge = document.getElementById('uv-badge');
+      uvBadge.textContent = uvInfo.text;
+      uvBadge.style.backgroundColor = uvInfo.bg;
+      uvBadge.style.color = uvInfo.color;
+
+      // Air Temp
       const currentTemp = Math.round(weatherData.hourly.temperature_2m[idx]);
       const minTemp = Math.round(weatherData.daily.temperature_2m_min[3]);
       const maxTemp = Math.round(weatherData.daily.temperature_2m_max[3]);
       document.getElementById('air-temp').textContent = `${currentTemp}°C`;
       document.getElementById('air-min-max').textContent = `Min: ${minTemp}°C / Max: ${maxTemp}°C`;
 
+      // Wind
       const windSpd = Math.round(weatherData.hourly.wind_speed_10m[idx]);
       const windGust = Math.round(weatherData.hourly.wind_gusts_10m[idx]);
       const windDir = weatherData.hourly.wind_direction_10m[idx];
@@ -402,6 +764,7 @@
       document.getElementById('wind-gusts').textContent = `Gusts: ${windGust} km/h`;
       setCompass(windDir);
 
+      // Sea Temp & Surf
       const seaTempVal = processedSeaTemps[idx] ? processedSeaTemps[idx].toFixed(1) : "18.5";
       document.getElementById('sea-temp').textContent = `${seaTempVal}°C`;
 
@@ -430,6 +793,37 @@
       renderCharts();
     }
 
+    function updateWeatherStripAlignment(stepIndices, dates, codes, isDayList) {
+      const strip = document.getElementById('weather-icon-strip');
+      strip.innerHTML = '';
+      if (!chart1Instance || !chart1Instance.chartArea) return;
+
+      const chartArea = chart1Instance.chartArea;
+      const chartWidth = chart1Instance.width;
+
+      strip.style.paddingLeft = `${chartArea.left}px`;
+      strip.style.paddingRight = `${chartWidth - chartArea.right}px`;
+
+      const showMultiDay = ['past3d', 'next3d', 'next7d'].includes(currentFilter);
+
+      stepIndices.forEach((dataIndex) => {
+        const d = new Date(dates[dataIndex]);
+        const timeLabel = showMultiDay ? `${d.getDate()}/${d.getMonth()+1}` : `${d.getHours()}h`;
+        
+        const isDayVal = showMultiDay ? 1 : isDayList[dataIndex];
+        const info = decodeWMO(codes[dataIndex], isDayVal, d);
+
+        const item = document.createElement('div');
+        item.className = 'weather-strip-item';
+        item.style.flex = "1";
+        item.innerHTML = `
+          <span>${timeLabel}</span>
+          <span class="icon">${info.icon}</span>
+        `;
+        strip.appendChild(item);
+      });
+    }
+
     const verticalCrosshairPlugin = {
       id: 'verticalCrosshair',
       afterDraw: (chart) => {
@@ -453,29 +847,59 @@
       }
     };
 
+    function handleExternalTooltip(context) {
+      const tooltipEl = document.getElementById('custom-tooltip');
+      const { chart, tooltip } = context;
+
+      if (tooltip.opacity === 0) {
+        tooltipEl.classList.remove('visible');
+        return;
+      }
+
+      if (tooltip.body) {
+        const titleLines = tooltip.title || [];
+        const bodyLines = tooltip.body.map(b => b.lines);
+
+        let innerHtml = `<div style="font-weight: 700; margin-bottom: 4px; color: var(--accent-blue);">${titleLines[0] || ''}</div>`;
+        bodyLines.forEach((body, i) => {
+          const colors = tooltip.labelColors[i];
+          const style = `background:${colors.borderColor}; width:8px; height:8px; display:inline-block; border-radius:2px; margin-right:6px;`;
+          innerHtml += `<div style="display:flex; align-items:center; margin-top:2px;"><span style="${style}"></span>${body}</div>`;
+        });
+
+        tooltipEl.innerHTML = innerHtml;
+      }
+
+      const position = chart.canvas.getBoundingClientRect();
+      tooltipEl.style.left = position.left + window.pageXOffset + tooltip.caretX + 12 + 'px';
+      tooltipEl.style.top = position.top + window.pageYOffset + tooltip.caretY - 20 + 'px';
+      tooltipEl.classList.add('visible');
+    }
+
     function renderCharts() {
       if (!weatherData) return;
 
       const { start, end } = getTimeSliceIndices();
       const showMultiDayLabels = ['past3d', 'next3d', 'next7d'].includes(currentFilter);
 
-      const timeLabels = weatherData.hourly.time.slice(start, end).map(t => {
+      const times = weatherData.hourly.time.slice(start, end);
+      const airTemps = weatherData.hourly.temperature_2m.slice(start, end);
+      const windSpeeds = weatherData.hourly.wind_speed_10m.slice(start, end);
+      const windGusts = weatherData.hourly.wind_gusts_10m.slice(start, end);
+      const weatherCodes = weatherData.hourly.weather_code.slice(start, end);
+      const isDayList = weatherData.hourly.is_day ? weatherData.hourly.is_day.slice(start, end) : Array(end-start).fill(1);
+
+      const waveHeights = marineData?.hourly?.wave_height?.slice(start, end) || Array(end-start).fill(1.2);
+      const seaTemps = processedSeaTemps.slice(start, end);
+      const rawTides = marineData?.hourly?.sea_level_height_msl?.slice(start, end) || Array(end-start).fill(0);
+      const tides = rawTides.map(val => parseFloat((val + HYDROGRAPHIC_ZERO_OFFSET).toFixed(2)));
+
+      const timeLabels = times.map(t => {
         const d = new Date(t);
         return showMultiDayLabels 
           ? `${d.getHours()}:00 (${d.getDate()}/${d.getMonth()+1})`
           : `${d.getHours()}:00`;
       });
-
-      const airTemps = weatherData.hourly.temperature_2m.slice(start, end);
-      const windSpeeds = weatherData.hourly.wind_speed_10m.slice(start, end);
-      const windGusts = weatherData.hourly.wind_gusts_10m.slice(start, end);
-
-      const waveHeights = marineData?.hourly?.wave_height?.slice(start, end) || Array(end-start).fill(1.2);
-      const seaTemps = processedSeaTemps.slice(start, end);
-      
-      // Convert MSL tide levels to Hydrographic Zero (ZH) datum by adding offset
-      const rawTides = marineData?.hourly?.sea_level_height_msl?.slice(start, end) || Array(end-start).fill(0);
-      const tides = rawTides.map(val => parseFloat((val + HYDROGRAPHIC_ZERO_OFFSET).toFixed(2)));
 
       if (chart1Instance) chart1Instance.destroy();
       if (chart2Instance) chart2Instance.destroy();
@@ -502,7 +926,7 @@
               ticks: { 
                 color: '#a0aab2', 
                 font: { size: 10 },
-                maxTicksLimit: showMultiDayLabels ? 10 : 12
+                maxTicksLimit: showMultiDayLabels ? 8 : 12
               } 
             },
             y1: { 
@@ -528,14 +952,14 @@
         plugins: [verticalCrosshairPlugin]
       });
 
-      // Chart 2: Marine & Surf (Tides now display in ZH range ~0.8m to ~3.4m)
+      // Chart 2: Marine & Surf
       chart2Instance = new Chart(document.getElementById('chart2'), {
         type: 'line',
         data: {
           labels: timeLabels,
           datasets: [
             { label: 'Water Temp (°C)', data: seaTemps, borderColor: '#4cc9f0', tension: 0.3, yAxisID: 'y1' },
-            { label: 'Surf Height (m)', data: waveHeights, borderColor: '#7209b7', tension: 0.3, yAxisID: 'y2' },
+            { label: 'Surf Height (m)', data: waveHeights, borderColor: '#b5179e', borderWidth: 2.5, tension: 0.3, yAxisID: 'y2' },
             { label: 'Tide (m ZH)', data: tides, borderColor: '#4895ef', borderDash: [2, 2], tension: 0.4, yAxisID: 'y2' }
           ]
         },
@@ -550,7 +974,7 @@
               ticks: { 
                 color: '#a0aab2', 
                 font: { size: 10 },
-                maxTicksLimit: showMultiDayLabels ? 10 : 12
+                maxTicksLimit: showMultiDayLabels ? 8 : 12
               } 
             },
             y1: { 
@@ -563,8 +987,7 @@
             y2: { 
               type: 'linear', 
               position: 'right', 
-              grid: { display: false }, 
-              ticks: { color: '#4895ef', font: { size: 10 } },
+              grid: { color: '#4895ef', font: { size: 10 } },
               title: { display: true, text: 'Meters (m)', color: '#4895ef', font: { size: 10 } }
             }
           },
@@ -575,6 +998,19 @@
         },
         plugins: [verticalCrosshairPlugin]
       });
+
+      const stepCount = showMultiDayLabels ? 6 : 10;
+      const totalPoints = times.length;
+      const stepIndices = [];
+      const step = Math.max(1, Math.floor(totalPoints / (stepCount - 1)));
+      for (let i = 0; i < totalPoints; i += step) {
+        stepIndices.push(i);
+      }
+      if (stepIndices[stepIndices.length - 1] !== totalPoints - 1) {
+        stepIndices.push(totalPoints - 1);
+      }
+
+      updateWeatherStripAlignment(stepIndices, times, weatherCodes, isDayList);
 
       buildCustomLegend('legend-chart1', chart1Instance);
       buildCustomLegend('legend-chart2', chart2Instance);
@@ -611,45 +1047,7 @@
       });
     }
 
-    function handleExternalTooltip(context) {
-      const tooltipEl = document.getElementById('custom-tooltip');
-      const { chart, tooltip } = context;
-
-      if (tooltip.opacity === 0) {
-        tooltipEl.classList.remove('visible');
-        return;
-      }
-
-      if (tooltip.body) {
-        const title = tooltip.title[0] || '';
-        const bodyLines = tooltip.body.map(b => b.lines);
-
-        let innerHTML = `<div style="font-weight:bold; margin-bottom:4px; color:var(--accent-blue)">Time: ${title}</div>`;
-        bodyLines.forEach((body) => {
-          innerHTML += `<div>${body}</div>`;
-        });
-
-        tooltipEl.innerHTML = innerHTML;
-      }
-
-      const position = chart.canvas.getBoundingClientRect();
-      tooltipEl.style.left = position.left + window.pageXOffset + tooltip.caretX + 'px';
-      tooltipEl.style.top = position.top + window.pageYOffset + tooltip.caretY - 60 + 'px';
-      tooltipEl.classList.add('visible');
-
-      clearTimeout(tooltipTimeout);
-      tooltipTimeout = setTimeout(() => {
-        tooltipEl.classList.remove('visible');
-      }, 2000);
-    }
-
-    document.addEventListener('touchstart', (e) => {
-      if (!e.target.closest('canvas')) {
-        document.getElementById('custom-tooltip').classList.remove('visible');
-      }
-    });
-
+    // Initialize Dashboard
     loadData();
   </script>
-</body>
-</html>
+</body></html>
