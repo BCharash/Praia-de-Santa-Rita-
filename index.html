@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Praias de Portugal</title>
@@ -60,9 +62,36 @@
       letter-spacing: -0.5px;
     }
 
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
     .beach-name {
       font-size: 0.85rem;
       color: var(--text-dim);
+    }
+
+    /* PT / EN Language Toggle Pill */
+    .lang-toggle {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-dim);
+      padding: 3px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: flex;
+      gap: 4px;
+      user-select: none;
+    }
+
+    .lang-toggle span.active {
+      color: var(--accent-blue);
+      text-decoration: underline;
     }
 
     /* Weather Warning Banner */
@@ -396,10 +425,11 @@
       font-size: 0.75rem;
       color: var(--text-main);
       pointer-events: none;
-      z-index: 100;
+      z-index: 999;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       opacity: 0;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.15s ease;
+      white-space: nowrap;
     }
 
     .floating-tooltip.visible {
@@ -412,7 +442,7 @@
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.75);
-      z-index: 200;
+      z-index: 1000;
       align-items: center;
       justify-content: center;
       padding: 20px;
@@ -455,19 +485,26 @@
       font-weight: 600;
       float: right;
     }
-  </style></head><body>
+  </style>
+</head>
+<body>
 
   <header>
     <div>
-      <h1>Praias de Portugal</h1>
+      <h1 id="app-title">Praias de Portugal</h1>
       <div class="beach-name" id="location-name">Praia de Santa Rita</div>
+    </div>
+    <div class="header-right">
+      <button class="lang-toggle" onclick="toggleLanguage()">
+        <span id="lang-pt">PT</span> | <span id="lang-en">EN</span>
+      </button>
     </div>
   </header>
 
   <!-- Dynamic Official IPMA Weather Alert Banner -->
   <div class="alert-banner" id="alert-banner" onclick="openAlertModal()">
     <span id="alert-banner-text">⚠️ IPMA Weather Warning</span>
-    <span>Details &rsaquo;</span>
+    <span id="alert-details-link">Details &rsaquo;</span>
   </div>
 
   <!-- Top Weather & Peak/Current UV Summary -->
@@ -480,7 +517,7 @@
       </div>
     </div>
     <div class="uv-box">
-      <div class="uv-title">UV Index</div>
+      <div class="uv-title" id="lbl-uv-index">UV Index</div>
       <div class="uv-val" id="uv-index-max-val">-- Peak</div>
       <div class="uv-high-text" id="uv-index-now-val">Now: --</div>
       <div class="uv-badge" id="uv-badge">--</div>
@@ -490,13 +527,13 @@
   <!-- Metrics Grid -->
   <section class="metrics-grid">
     <div class="card air-card">
-      <div class="card-title">Air Temp</div>
+      <div class="card-title" id="lbl-card-air">Air Temp</div>
       <div class="card-primary" id="air-temp">--°C</div>
       <div class="card-sub" id="air-min-max">Min: --° / Max: --°</div>
     </div>
 
     <div class="card wind-card">
-      <div class="card-title">Wind</div>
+      <div class="card-title" id="lbl-card-wind">Wind</div>
       <div class="wind-card-body">
         <div>
           <div class="card-primary" id="wind-speed">-- <span style="font-size: 0.8rem;">km/h</span></div>
@@ -510,30 +547,30 @@
     </div>
 
     <div class="card sea-card">
-      <div class="card-title">Sea Temp</div>
+      <div class="card-title" id="lbl-card-sea">Sea Temp</div>
       <div class="card-primary" id="sea-temp">--°C</div>
-      <div class="card-sub">Surface Water</div>
+      <div class="card-sub" id="lbl-card-sea-sub">Surface Water</div>
     </div>
 
     <div class="card surf-card">
-      <div class="card-title">Surf Swell</div>
+      <div class="card-title" id="lbl-card-surf">Surf Swell</div>
       <div class="card-primary" id="surf-height">-- m</div>
       <div class="card-sub" id="surf-period">Period: -- s</div>
     </div>
   </section>
 
   <nav class="time-bar">
-    <button class="time-btn" onclick="setTimeFilter('past3d')">Past 3d</button>
-    <button class="time-btn" onclick="setTimeFilter('past1d')">Past 1d</button>
-    <button class="time-btn active" onclick="setTimeFilter('today')">Today</button>
-    <button class="time-btn" onclick="setTimeFilter('next3d')">Next 3d</button>
-    <button class="time-btn" onclick="setTimeFilter('next7d')">Next 7d</button>
+    <button class="time-btn" id="btn-past3d" onclick="setTimeFilter('past3d')">Past 3d</button>
+    <button class="time-btn" id="btn-past1d" onclick="setTimeFilter('past1d')">Past 1d</button>
+    <button class="time-btn active" id="btn-today" onclick="setTimeFilter('today')">Today</button>
+    <button class="time-btn" id="btn-next3d" onclick="setTimeFilter('next3d')">Next 3d</button>
+    <button class="time-btn" id="btn-next7d" onclick="setTimeFilter('next7d')">Next 7d</button>
   </nav>
 
   <!-- Atmospheric Chart Container with Aligned Graphical Weather Bar -->
   <div class="chart-container">
     <div class="chart-header">
-      <div class="chart-title">Atmospheric & Wind</div>
+      <div class="chart-title" id="title-chart1">Atmospheric & Wind</div>
       <div class="custom-legend" id="legend-chart1"></div>
     </div>
     <div class="weather-icon-strip" id="weather-icon-strip"></div>
@@ -542,7 +579,7 @@
 
   <div class="chart-container">
     <div class="chart-header">
-      <div class="chart-title">Marine & Surf</div>
+      <div class="chart-title" id="title-chart2">Marine & Surf</div>
       <div class="custom-legend" id="legend-chart2"></div>
     </div>
     <canvas id="chart2"></canvas>
@@ -557,7 +594,7 @@
       <div class="modal-body" id="modal-alert-body">
         Loading IPMA advisories...
       </div>
-      <button class="modal-close-btn" onclick="closeAlertModal()">Close</button>
+      <button class="modal-close-btn" id="modal-close-btn" onclick="closeAlertModal()">Close</button>
     </div>
   </div>
 
@@ -567,14 +604,110 @@
     const LISBON_IPMA_CODE = "LSB";
     const HYDROGRAPHIC_ZERO_OFFSET = 2.08;
 
+    // --- BILINGUAL TRANSLATION DICTIONARY & LOCALSTORAGE ---
+    const translations = {
+      PT: {
+        appTitle: "Praias de Portugal",
+        coastalConditions: "Condições Costeiras",
+        uvIndex: "Índice UV",
+        peak: "Pico",
+        now: "Agora",
+        airTemp: "Temp. Ar",
+        wind: "Vento",
+        gusts: "Rajadas",
+        seaTemp: "Temp. Água",
+        seaSub: "Superfície do Mar",
+        surfSwell: "Vaga / Surf",
+        period: "Período",
+        past3d: "Últ. 3d",
+        past1d: "Ontem",
+        today: "Hoje",
+        next3d: "Próx. 3d",
+        next7d: "Próx. 7d",
+        chart1Title: "Atmosfera e Vento",
+        chart2Title: "Marés e Vaga",
+        ipmaTitle: "Aviso Meteorológico Oficial IPMA",
+        details: "Detalhes ›",
+        close: "Fechar",
+        uvLevels: { low: "Baixo", mod: "Moderado", high: "Elevado", vhigh: "Muito Elevado", extreme: "Extremo" },
+        weather: { clear: "Céu Limpo", partlyCloudy: "Parcialmente Nublado", overcast: "Encoberto", foggy: "Névoa/Aviso", drizzle: "Chuvisco", rain: "Chuva", showers: "Aguaceiros", thunderstorm: "Trovoada", fair: "Bom Tempo" },
+        legend: { airTemp: "Temp Ar (°C)", windSpd: "Vento (km/h)", gusts: "Rajadas (km/h)", waterTemp: "Temp Água (°C)", surfHeight: "Altura Vaga (m)", tide: "Maré (m ZH)" }
+      },
+      EN: {
+        appTitle: "Praias de Portugal",
+        coastalConditions: "Coastal Conditions",
+        uvIndex: "UV Index",
+        peak: "Peak",
+        now: "Now",
+        airTemp: "Air Temp",
+        wind: "Wind",
+        gusts: "Gusts",
+        seaTemp: "Sea Temp",
+        seaSub: "Surface Water",
+        surfSwell: "Surf Swell",
+        period: "Period",
+        past3d: "Past 3d",
+        past1d: "Past 1d",
+        today: "Today",
+        next3d: "Next 3d",
+        next7d: "Next 7d",
+        chart1Title: "Atmospheric & Wind",
+        chart2Title: "Marine & Surf",
+        ipmaTitle: "Official IPMA Advisory",
+        details: "Details ›",
+        close: "Close",
+        uvLevels: { low: "Low", mod: "Moderate", high: "High", vhigh: "Very High", extreme: "Extreme" },
+        weather: { clear: "Clear", partlyCloudy: "Partly Cloudy", overcast: "Overcast", foggy: "Foggy", drizzle: "Drizzle", rain: "Rain", showers: "Showers", thunderstorm: "Thunderstorm", fair: "Fair" },
+        legend: { airTemp: "Air Temp (°C)", windSpd: "Wind Spd (km/h)", gusts: "Gusts (km/h)", waterTemp: "Water Temp (°C)", surfHeight: "Surf Height (m)", tide: "Tide (m ZH)" }
+      }
+    };
+
+    let currentLang = localStorage.getItem('appLanguage') || 'PT';
+
     let weatherData = null;
     let marineData = null;
     let processedSeaTemps = [];
     let currentFilter = 'today';
     let chart1Instance = null;
     let chart2Instance = null;
-    let tooltipTimeout = null;
     let activeAlertMessage = "";
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'PT' ? 'EN' : 'PT';
+      localStorage.setItem('appLanguage', currentLang);
+      applyLanguageUI();
+      if (weatherData) {
+        updateCurrentMetrics();
+        renderCharts();
+      }
+    }
+
+    function applyLanguageUI() {
+      const t = translations[currentLang];
+      document.getElementById('lang-pt').classList.toggle('active', currentLang === 'PT');
+      document.getElementById('lang-en').classList.toggle('active', currentLang === 'EN');
+
+      document.getElementById('app-title').textContent = t.appTitle;
+      document.getElementById('main-weather-sub').textContent = t.coastalConditions;
+      document.getElementById('lbl-uv-index').textContent = t.uvIndex;
+      document.getElementById('lbl-card-air').textContent = t.airTemp;
+      document.getElementById('lbl-card-wind').textContent = t.wind;
+      document.getElementById('lbl-card-sea').textContent = t.seaTemp;
+      document.getElementById('lbl-card-sea-sub').textContent = t.seaSub;
+      document.getElementById('lbl-card-surf').textContent = t.surfSwell;
+
+      document.getElementById('btn-past3d').textContent = t.past3d;
+      document.getElementById('btn-past1d').textContent = t.past1d;
+      document.getElementById('btn-today').textContent = t.today;
+      document.getElementById('btn-next3d').textContent = t.next3d;
+      document.getElementById('btn-next7d').textContent = t.next7d;
+
+      document.getElementById('title-chart1').textContent = t.chart1Title;
+      document.getElementById('title-chart2').textContent = t.chart2Title;
+      document.getElementById('modal-alert-title').textContent = t.ipmaTitle;
+      document.getElementById('alert-details-link').textContent = t.details;
+      document.getElementById('modal-close-btn').textContent = t.close;
+    }
 
     // Astronomical Moon Phase Calculation
     function getMoonPhaseIcon(date) {
@@ -596,24 +729,26 @@
     // Decodes WMO weather code taking into consideration day vs. night and moon phase
     function decodeWMO(code, isDay = 1, dateObj = new Date()) {
       const moonIcon = `<span class="moon-icon">${getMoonPhaseIcon(dateObj)}</span>`;
+      const w = translations[currentLang].weather;
       
-      if (code === 0) return { icon: isDay ? '☀️' : moonIcon, text: 'Clear' };
-      if (code === 1 || code === 2) return { icon: isDay ? '🌤️' : moonIcon, text: 'Partly Cloudy' };
-      if (code === 3) return { icon: '☁️', text: 'Overcast' };
-      if (code >= 45 && code <= 48) return { icon: '🌫️', text: 'Foggy' };
-      if (code >= 51 && code <= 55) return { icon: '🌦️', text: 'Drizzle' };
-      if (code >= 61 && code <= 65) return { icon: '🌧️', text: 'Rain' };
-      if (code >= 80 && code <= 82) return { icon: '🌦️', text: 'Showers' };
-      if (code >= 95) return { icon: '🌩️', text: 'Thunderstorm' };
-      return { icon: isDay ? '🌤️' : moonIcon, text: 'Fair' };
+      if (code === 0) return { icon: isDay ? '☀️' : moonIcon, text: w.clear };
+      if (code === 1 || code === 2) return { icon: isDay ? '🌤️' : moonIcon, text: w.partlyCloudy };
+      if (code === 3) return { icon: '☁️', text: w.overcast };
+      if (code >= 45 && code <= 48) return { icon: '🌫️', text: w.foggy };
+      if (code >= 51 && code <= 55) return { icon: '🌦️', text: w.drizzle };
+      if (code >= 61 && code <= 65) return { icon: '🌧️', text: w.rain };
+      if (code >= 80 && code <= 82) return { icon: '🌦️', text: w.showers };
+      if (code >= 95) return { icon: '🌩️', text: w.thunderstorm };
+      return { icon: isDay ? '🌤️' : moonIcon, text: w.fair };
     }
 
     function getUVBadge(uv) {
-      if (uv <= 2) return { text: 'Low', bg: '#38b000', color: '#fff' };
-      if (uv <= 5) return { text: 'Moderate', bg: '#ffb703', color: '#000' };
-      if (uv <= 7) return { text: 'High', bg: '#fb8500', color: '#fff' };
-      if (uv <= 10) return { text: 'Very High', bg: '#d00000', color: '#fff' };
-      return { text: 'Extreme', bg: '#9d4edd', color: '#fff' };
+      const lvl = translations[currentLang].uvLevels;
+      if (uv <= 2) return { text: lvl.low, bg: '#38b000', color: '#fff' };
+      if (uv <= 5) return { text: lvl.mod, bg: '#ffb703', color: '#000' };
+      if (uv <= 7) return { text: lvl.high, bg: '#fb8500', color: '#fff' };
+      if (uv <= 10) return { text: lvl.vhigh, bg: '#d00000', color: '#fff' };
+      return { text: lvl.extreme, bg: '#9d4edd', color: '#fff' };
     }
 
     function setCompass(degrees) {
@@ -668,7 +803,7 @@
         const res = await fetch(ipmaUrl);
         const warnings = await res.json();
 
-        // Filter active warnings for District of Lisbon (LSB) that are not Green ('Amarelo', 'Laranja', 'Vermelho')
+        // Filter active warnings for District of Lisbon (LSB)
         const activeLisbonWarnings = warnings.filter(w => 
           w.idAreaAviso === LISBON_IPMA_CODE && 
           w.awarenessLevelID !== 'green'
@@ -682,7 +817,6 @@
           return;
         }
 
-        // Hierarchy of colors: Red > Orange > Yellow
         let highestLevel = 'yellow';
         if (activeLisbonWarnings.some(w => w.awarenessLevelID === 'red')) highestLevel = 'red';
         else if (activeLisbonWarnings.some(w => w.awarenessLevelID === 'orange')) highestLevel = 'orange';
@@ -694,14 +828,11 @@
         });
 
         bannerText.textContent = `⚠️ IPMA Warning: ${summaryTitles.join(' | ')}`;
-        
-        // Reset classes
         banner.className = 'alert-banner visible ' + highestLevel;
 
-        // Build details modal text
         const details = activeLisbonWarnings.map(w => {
-          const start = w.startTime ? new Date(w.startTime).toLocaleString('pt-PT') : '';
-          const end = w.endTime ? new Date(w.endTime).toLocaleString('pt-PT') : '';
+          const start = w.startTime ? new Date(w.startTime).toLocaleString(currentLang === 'PT' ? 'pt-PT' : 'en-GB') : '';
+          const end = w.endTime ? new Date(w.endTime).toLocaleString(currentLang === 'PT' ? 'pt-PT' : 'en-GB') : '';
           const text = w.text || w.awarenessTypeName || 'Aviso Meteorológico IPMA';
           return `• OFFICIAL IPMA ALERT (${w.awarenessLevelID?.toUpperCase()}): ${text}\n  Valid: ${start} to ${end}`;
         });
@@ -724,6 +855,7 @@
 
     function updateCurrentMetrics() {
       if (!weatherData || !weatherData.hourly) return;
+      const t = translations[currentLang];
 
       const now = new Date();
       const currentHourStr = now.toISOString().slice(0, 13) + ":00";
@@ -740,8 +872,8 @@
       const todayMaxUV = weatherData.daily.uv_index_max ? weatherData.daily.uv_index_max[3] : 0;
       const currentUV = weatherData.hourly.uv_index ? weatherData.hourly.uv_index[idx] : 0;
 
-      document.getElementById('uv-index-max-val').textContent = `${todayMaxUV.toFixed(1)} Peak`;
-      document.getElementById('uv-index-now-val').textContent = `Now: ${currentUV.toFixed(1)}`;
+      document.getElementById('uv-index-max-val').textContent = `${todayMaxUV.toFixed(1)} ${t.peak}`;
+      document.getElementById('uv-index-now-val').textContent = `${t.now}: ${currentUV.toFixed(1)}`;
 
       const uvInfo = getUVBadge(todayMaxUV);
       const uvBadge = document.getElementById('uv-badge');
@@ -761,7 +893,7 @@
       const windGust = Math.round(weatherData.hourly.wind_gusts_10m[idx]);
       const windDir = weatherData.hourly.wind_direction_10m[idx];
       document.getElementById('wind-speed').innerHTML = `${windSpd} <span style="font-size: 0.8rem;">km/h</span>`;
-      document.getElementById('wind-gusts').textContent = `Gusts: ${windGust} km/h`;
+      document.getElementById('wind-gusts').textContent = `${t.gusts}: ${windGust} km/h`;
       setCompass(windDir);
 
       // Sea Temp & Surf
@@ -772,7 +904,7 @@
         const waveH = marineData.hourly.wave_height[idx] || 1.2;
         const waveP = marineData.hourly.wave_period[idx] || 8;
         document.getElementById('surf-height').textContent = `${waveH.toFixed(1)} m`;
-        document.getElementById('surf-period').textContent = `Period: ${Math.round(waveP)} s`;
+        document.getElementById('surf-period').textContent = `${t.period}: ${Math.round(waveP)} s`;
       }
     }
 
@@ -847,6 +979,7 @@
       }
     };
 
+    // --- FIX FOR FLOATING TOOLTIP POSITIONING BUG ---
     function handleExternalTooltip(context) {
       const tooltipEl = document.getElementById('custom-tooltip');
       const { chart, tooltip } = context;
@@ -870,10 +1003,59 @@
         tooltipEl.innerHTML = innerHtml;
       }
 
-      const position = chart.canvas.getBoundingClientRect();
-      tooltipEl.style.left = position.left + window.pageXOffset + tooltip.caretX + 12 + 'px';
-      tooltipEl.style.top = position.top + window.pageYOffset + tooltip.caretY - 20 + 'px';
+      const rect = chart.canvas.getBoundingClientRect();
+      const tooltipWidth = tooltipEl.offsetWidth || 150;
+      const tooltipHeight = tooltipEl.offsetHeight || 80;
+
+      // Calculate absolute screen coordinates
+      let left = rect.left + tooltip.caretX + 12;
+      let top = rect.top + tooltip.caretY - (tooltipHeight / 2);
+
+      // Clamp coordinates so the box never spills off the right or bottom of the screen
+      if (left + tooltipWidth > window.innerWidth - 10) {
+        left = rect.left + tooltip.caretX - tooltipWidth - 12;
+      }
+      if (top + tooltipHeight > window.innerHeight - 10) {
+        top = window.innerHeight - tooltipHeight - 10;
+      }
+      if (top < 10) top = 10;
+
+      tooltipEl.style.left = `${left}px`;
+      tooltipEl.style.top = `${top}px`;
       tooltipEl.classList.add('visible');
+    }
+
+    // Custom Interactive Legend Renderer
+    function renderCustomLegend(chart, containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      chart.data.datasets.forEach((dataset, i) => {
+        const item = document.createElement('div');
+        item.className = 'legend-item active';
+
+        const box = document.createElement('div');
+        box.className = 'legend-checkbox';
+        box.style.borderColor = dataset.borderColor;
+        box.style.backgroundColor = dataset.borderColor;
+
+        const label = document.createElement('span');
+        label.textContent = dataset.label;
+
+        item.appendChild(box);
+        item.appendChild(label);
+
+        item.onclick = () => {
+          const isVisible = chart.isDatasetVisible(i);
+          chart.setDatasetVisibility(i, !isVisible);
+          chart.update();
+
+          item.classList.toggle('active', !isVisible);
+          box.style.backgroundColor = !isVisible ? dataset.borderColor : 'transparent';
+        };
+
+        container.appendChild(item);
+      });
     }
 
     function renderCharts() {
@@ -881,6 +1063,7 @@
 
       const { start, end } = getTimeSliceIndices();
       const showMultiDayLabels = ['past3d', 'next3d', 'next7d'].includes(currentFilter);
+      const l = translations[currentLang].legend;
 
       const times = weatherData.hourly.time.slice(start, end);
       const airTemps = weatherData.hourly.temperature_2m.slice(start, end);
@@ -910,9 +1093,9 @@
         data: {
           labels: timeLabels,
           datasets: [
-            { label: 'Air Temp (°C)', data: airTemps, borderColor: '#ffb703', tension: 0.3, yAxisID: 'y1' },
-            { label: 'Wind Spd (km/h)', data: windSpeeds, borderColor: '#00b4d8', tension: 0.3, yAxisID: 'y2' },
-            { label: 'Gusts (km/h)', data: windGusts, borderColor: '#f72585', borderDash: [3, 3], tension: 0.3, yAxisID: 'y2' }
+            { label: l.airTemp, data: airTemps, borderColor: '#ffb703', tension: 0.3, yAxisID: 'y1' },
+            { label: l.windSpd, data: windSpeeds, borderColor: '#00b4d8', tension: 0.3, yAxisID: 'y2' },
+            { label: l.gusts, data: windGusts, borderColor: '#f72585', borderDash: [3, 3], tension: 0.3, yAxisID: 'y2' }
           ]
         },
         options: {
@@ -958,9 +1141,9 @@
         data: {
           labels: timeLabels,
           datasets: [
-            { label: 'Water Temp (°C)', data: seaTemps, borderColor: '#4cc9f0', tension: 0.3, yAxisID: 'y1' },
-            { label: 'Surf Height (m)', data: waveHeights, borderColor: '#b5179e', borderWidth: 2.5, tension: 0.3, yAxisID: 'y2' },
-            { label: 'Tide (m ZH)', data: tides, borderColor: '#4895ef', borderDash: [2, 2], tension: 0.4, yAxisID: 'y2' }
+            { label: l.waterTemp, data: seaTemps, borderColor: '#4cc9f0', tension: 0.3, yAxisID: 'y1' },
+            { label: l.surfHeight, data: waveHeights, borderColor: '#b5179e', borderWidth: 2.5, tension: 0.3, yAxisID: 'y2' },
+            { label: l.tide, data: tides, borderColor: '#4895ef', borderDash: [2, 2], tension: 0.4, yAxisID: 'y2' }
           ]
         },
         options: {
@@ -987,8 +1170,9 @@
             y2: { 
               type: 'linear', 
               position: 'right', 
-              grid: { color: '#4895ef', font: { size: 10 } },
-              title: { display: true, text: 'Meters (m)', color: '#4895ef', font: { size: 10 } }
+              grid: { display: false }, 
+              ticks: { color: '#b5179e', font: { size: 10 } },
+              title: { display: true, text: 'm', color: '#b5179e', font: { size: 10 } }
             }
           },
           plugins: {
@@ -999,55 +1183,26 @@
         plugins: [verticalCrosshairPlugin]
       });
 
-      const stepCount = showMultiDayLabels ? 6 : 10;
+      renderCustomLegend(chart1Instance, 'legend-chart1');
+      renderCustomLegend(chart2Instance, 'legend-chart2');
+
+      // Align Weather Strip Icons
       const totalPoints = times.length;
+      const step = showMultiDayLabels ? Math.floor(totalPoints / 7) : Math.floor(totalPoints / 8);
       const stepIndices = [];
-      const step = Math.max(1, Math.floor(totalPoints / (stepCount - 1)));
-      for (let i = 0; i < totalPoints; i += step) {
+      for (let i = 0; i < totalPoints; i += Math.max(1, step)) {
         stepIndices.push(i);
       }
-      if (stepIndices[stepIndices.length - 1] !== totalPoints - 1) {
-        stepIndices.push(totalPoints - 1);
-      }
 
-      updateWeatherStripAlignment(stepIndices, times, weatherCodes, isDayList);
-
-      buildCustomLegend('legend-chart1', chart1Instance);
-      buildCustomLegend('legend-chart2', chart2Instance);
+      setTimeout(() => {
+        updateWeatherStripAlignment(stepIndices, times, weatherCodes, isDayList);
+      }, 50);
     }
 
-    function buildCustomLegend(containerId, chart) {
-      const container = document.getElementById(containerId);
-      container.innerHTML = '';
-
-      chart.data.datasets.forEach((dataset, i) => {
-        const item = document.createElement('div');
-        item.className = 'legend-item active';
-
-        const box = document.createElement('div');
-        box.className = 'legend-checkbox';
-        box.style.borderColor = dataset.borderColor;
-        box.style.backgroundColor = dataset.borderColor;
-
-        const label = document.createElement('span');
-        label.textContent = dataset.label.split(' ')[0];
-
-        item.appendChild(box);
-        item.appendChild(label);
-
-        item.onclick = () => {
-          const visible = chart.isDatasetVisible(i);
-          chart.setDatasetVisibility(i, !visible);
-          chart.update();
-          item.classList.toggle('active', !visible);
-          box.style.backgroundColor = !visible ? dataset.borderColor : 'transparent';
-        };
-
-        container.appendChild(item);
-      });
-    }
-
-    // Initialize Dashboard
-    loadData();
+    document.addEventListener('DOMContentLoaded', () => {
+      applyLanguageUI();
+      loadData();
+    });
   </script>
-</body></html>
+</body>
+</html>
