@@ -359,6 +359,15 @@
       text-align: center;
     }
 
+    .wind-arrow-inline {
+      display: inline-block;
+      color: var(--color-wind);
+      font-size: 0.8rem;
+      line-height: 1;
+      margin-top: 2px;
+      font-weight: bold;
+    }
+
     /* Moon Styling */
     .moon-icon {
       color: #fff3bf;
@@ -925,7 +934,7 @@
       renderCharts();
     }
 
-    function updateWeatherStripAlignment(stepIndices, dates, codes, isDayList) {
+    function updateWeatherStripAlignment(stepIndices, dates, codes, isDayList, windDirs) {
       const strip = document.getElementById('weather-icon-strip');
       strip.innerHTML = '';
       if (!chart1Instance || !chart1Instance.chartArea) return;
@@ -944,6 +953,7 @@
         
         const isDayVal = showMultiDay ? 1 : isDayList[dataIndex];
         const info = decodeWMO(codes[dataIndex], isDayVal, d);
+        const windDeg = windDirs[dataIndex] ?? 0;
 
         const item = document.createElement('div');
         item.className = 'weather-strip-item';
@@ -951,6 +961,7 @@
         item.innerHTML = `
           <span>${timeLabel}</span>
           <span class="icon">${info.icon}</span>
+          <span class="wind-arrow-inline" style="transform: rotate(${windDeg}deg);" title="${windDeg}°">↑</span>
         `;
         strip.appendChild(item);
       });
@@ -1065,6 +1076,7 @@
       const airTemps = weatherData.hourly.temperature_2m.slice(start, end);
       const windSpeeds = weatherData.hourly.wind_speed_10m.slice(start, end);
       const windGusts = weatherData.hourly.wind_gusts_10m.slice(start, end);
+      const windDirections = weatherData.hourly.wind_direction_10m ? weatherData.hourly.wind_direction_10m.slice(start, end) : Array(end-start).fill(0);
       const weatherCodes = weatherData.hourly.weather_code.slice(start, end);
       const isDayList = weatherData.hourly.is_day ? weatherData.hourly.is_day.slice(start, end) : Array(end-start).fill(1);
 
@@ -1182,7 +1194,7 @@
       renderCustomLegend(chart1Instance, 'legend-chart1');
       renderCustomLegend(chart2Instance, 'legend-chart2');
 
-      // Align Weather Strip Icons
+      // Align Weather Strip Icons and Wind Arrows
       const totalPoints = times.length;
       const step = showMultiDayLabels ? Math.floor(totalPoints / 7) : Math.floor(totalPoints / 8);
       const stepIndices = [];
@@ -1191,7 +1203,7 @@
       }
 
       setTimeout(() => {
-        updateWeatherStripAlignment(stepIndices, times, weatherCodes, isDayList);
+        updateWeatherStripAlignment(stepIndices, times, weatherCodes, isDayList, windDirections);
       }, 50);
     }
 
