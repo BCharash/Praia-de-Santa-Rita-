@@ -695,6 +695,17 @@
     function hideTooltip() {
       const tooltipEl = document.getElementById('custom-tooltip');
       if (tooltipEl) tooltipEl.classList.remove('visible');
+
+      // Clear active elements in Chart.js so crosshair lines clear immediately
+      [chart1Instance, chart2Instance].forEach(chart => {
+        if (chart) {
+          chart.setActiveElements([]);
+          if (chart.tooltip) {
+            chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+          }
+          chart.update('none');
+        }
+      });
     }
 
     function toggleLanguage() {
@@ -989,10 +1000,14 @@
       });
     }
 
+    // Plugin draws crosshair ONLY when the tooltip pop-up is active & visible
     const verticalCrosshairPlugin = {
       id: 'verticalCrosshair',
       afterDraw: (chart) => {
-        if (chart.tooltip?._active?.length) {
+        const tooltipEl = document.getElementById('custom-tooltip');
+        const isTooltipVisible = tooltipEl && tooltipEl.classList.contains('visible');
+
+        if (isTooltipVisible && chart.tooltip?._active?.length) {
           const activePoint = chart.tooltip._active[0];
           const ctx = chart.ctx;
           const x = activePoint.element.x;
@@ -1019,7 +1034,7 @@
       if (tooltipTimeout) clearTimeout(tooltipTimeout);
 
       if (tooltip.opacity === 0) {
-        tooltipEl.classList.remove('visible');
+        hideTooltip();
         return;
       }
 
@@ -1056,9 +1071,12 @@
       tooltipEl.style.top = `${top}px`;
       tooltipEl.classList.add('visible');
 
-      // Auto-hide popup after 3.5s of touch inactivity
+      // Re-trigger chart render to display vertical line aligned with the active tooltip
+      chart.draw();
+
+      // Auto-hide popup and vertical line after 3.5s of inactivity
       tooltipTimeout = setTimeout(() => {
-        tooltipEl.classList.remove('visible');
+        hideTooltip();
       }, 3500);
     }
 
@@ -1208,8 +1226,7 @@
             y2: { 
               type: 'linear', 
               position: 'right', 
-              grid: { display: false }, 
-              ticks: { color: '#f72585', font: { size: 10 } },
+              grid: { color: '#f72585', font: { size: 10 } },
               title: { display: true, text: 'm', color: '#f72585', font: { size: 10 } }
             }
           },
@@ -1237,7 +1254,7 @@
       }, 50);
     }
 
-    // Dismiss tooltip when tapping outside canvas elements
+    // Dismiss tooltip & crosshair line when tapping outside canvas elements
     document.addEventListener('touchstart', (e) => {
       if (!e.target.closest('canvas')) {
         hideTooltip();
