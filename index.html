@@ -677,14 +677,12 @@
     let activePointerIndex = null;
 
     // --- UNIT CONVERSIONS AND CONFIGURATION ---
-    // Single height preference controls both surf swell height and tide level
     let unitSettings = JSON.parse(localStorage.getItem('appUnits')) || {
       temp: 'C',
       wind: 'kt',
       height: 'm'
     };
 
-    // Migration logic for previous versions with separate surf/tide units
     if (unitSettings.surf || unitSettings.tide) {
       unitSettings.height = unitSettings.surf || unitSettings.tide || 'm';
       delete unitSettings.surf;
@@ -1005,7 +1003,6 @@
       }
     }
 
-    /* Fixed IPMA Alert Fetching and Active Status Verification */
     async function fetchIPMAAlerts() {
       const banner = document.getElementById('alert-banner');
       try {
@@ -1014,7 +1011,6 @@
         const warnings = await res.json();
         const now = new Date();
 
-        // Target Lisbon district or direct marine warnings covering current time
         const activeWarnings = warnings.filter(w => {
           const isTargetRegion = w.idAreaAviso === LISBON_IPMA_CODE || w.idAreaAviso === "Marim" || w.idAreaAviso === "LSB";
           if (!isTargetRegion) return false;
@@ -1030,12 +1026,11 @@
           return;
         }
 
-        // Determine highest severity active alert
         const severityOrder = { red: 3, orange: 2, yellow: 1 };
         activeWarnings.sort((a, b) => (severityOrder[b.awarenessLevelID] || 0) - (severityOrder[a.awarenessLevelID] || 0));
 
         const topAlert = activeWarnings[0];
-        const level = topAlert.awarenessLevelID; // green, yellow, orange, red
+        const level = topAlert.awarenessLevelID;
 
         banner.className = `alert-banner visible ${level}`;
         document.getElementById('alert-banner-text').textContent = `⚠️ IPMA Advisory: ${topAlert.awarenessTypeName || 'Weather Alert'}`;
@@ -1146,7 +1141,7 @@
       if (!weatherData || !weatherData.hourly) return { start: 0, end: 24 };
       const times = weatherData.hourly.time;
       const total = times.length;
-      const todayStartIdx = 72; // past 3 days = 72 hours
+      const todayStartIdx = 72;
 
       switch (currentFilter) {
         case 'past3d':
@@ -1235,7 +1230,6 @@
 
       updateWeatherStrip({ start, end }, labels);
 
-      // Data extraction & conversions
       const sliceAirTemp = weatherData.hourly.temperature_2m.slice(start, end).map(v => convertTemp(v));
       const sliceWindSpd = weatherData.hourly.wind_speed_10m.slice(start, end).map(v => convertWind(v));
       const sliceWindGust = weatherData.hourly.wind_gusts_10m.slice(start, end).map(v => convertWind(v));
@@ -1243,7 +1237,6 @@
       const sliceSeaTemp = processedSeaTemps.slice(start, end).map(v => convertTemp(v));
       const sliceSurfHeight = marineData.hourly.wave_height.slice(start, end).map(v => convertDist(v));
       
-      // Tide calculation: Conversion of MSL to Zero Hydrographic (ZH) reference
       const rawTides = marineData.hourly.sea_level_height_msl ? marineData.hourly.sea_level_height_msl.slice(start, end) : [];
       const sliceTides = rawTides.map(v => v !== null ? convertDist(v + HYDROGRAPHIC_ZERO_OFFSET) : null);
 
@@ -1272,14 +1265,6 @@
           x: {
             grid: { color: 'rgba(255, 255, 255, 0.05)' },
             ticks: { color: '#a0aab2', font: { size: 9 }, maxTicksLimit: 8 }
-          }
-        },
-        onHover: (evt, elements, chart) => {
-          if (elements && elements.length > 0) {
-            activePointerIndex = elements[0].index;
-            showCustomTooltip(evt, activePointerIndex, rawTimes);
-            if (chart1Instance) chart1Instance.update('none');
-            if (chart2Instance) chart2Instance.update('none');
           }
         }
       };
@@ -1325,6 +1310,14 @@
         },
         options: {
           ...commonOptions,
+          onHover: (evt, elements, chart) => {
+            if (elements && elements.length > 0) {
+              activePointerIndex = elements[0].index;
+              showCustomTooltip(evt, activePointerIndex, rawTimes, 1);
+              if (chart1Instance) chart1Instance.update('none');
+              if (chart2Instance) chart2Instance.update('none');
+            }
+          },
           scales: {
             ...commonOptions.scales,
             yTemp: {
@@ -1343,7 +1336,7 @@
         }
       });
 
-      // Chart 2: Marine & Surf (Tide graph fill explicitly disabled)
+      // Chart 2: Marine & Surf
       if (chart2Instance) chart2Instance.destroy();
       const ctx2 = document.getElementById('chart2').getContext('2d');
       chart2Instance = new Chart(ctx2, {
@@ -1366,7 +1359,7 @@
               data: sliceTides,
               borderColor: '#4895ef',
               borderWidth: 2,
-              fill: false, // Explicitly no fill for tide curve
+              fill: false,
               tension: 0.4,
               pointRadius: 0,
               yAxisID: 'yHeight',
@@ -1385,6 +1378,14 @@
         },
         options: {
           ...commonOptions,
+          onHover: (evt, elements, chart) => {
+            if (elements && elements.length > 0) {
+              activePointerIndex = elements[0].index;
+              showCustomTooltip(evt, activePointerIndex, rawTimes, 2);
+              if (chart1Instance) chart1Instance.update('none');
+              if (chart2Instance) chart2Instance.update('none');
+            }
+          },
           scales: {
             ...commonOptions.scales,
             yHeight: {
@@ -1404,7 +1405,7 @@
       });
     }
 
-    function showCustomTooltip(evt, index, rawTimes) {
+    function showCustomTooltip(evt, index, rawTimes, chartNum) {
       const tooltipEl = document.getElementById('custom-tooltip');
       if (!tooltipEl || index === null) return;
 
@@ -1417,28 +1418,36 @@
       const dateObj = new Date(rawTimes[index]);
 
       const tempUnit = unitSettings.temp === 'F' ? '°F' : '°C';
-      const windUnit = unitSettings.wind;
+      const unitMap = { kt: 'kt', mph: 'mph', ms: 'm/s', kmh: 'km/h' };
+      const windUnit = unitMap[unitSettings.wind] || 'km/h';
       const heightUnit = unitSettings.height;
-
-      const airT = convertTemp(h.temperature_2m[realIdx]);
-      const windS = convertWind(h.wind_speed_10m[realIdx]);
-      const windG = convertWind(h.wind_gusts_10m[realIdx]);
-
-      const waterT = convertTemp(processedSeaTemps[realIdx]);
-      const surfH = convertDist(m.wave_height[realIdx]);
-      const rawTide = m.sea_level_height_msl ? m.sea_level_height_msl[realIdx] : null;
-      const tideH = rawTide !== null ? convertDist(rawTide + HYDROGRAPHIC_ZERO_OFFSET) : '--';
 
       const timeLabel = `${dateObj.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'numeric' })} ${dateObj.getHours().toString().padStart(2, '0')}:00`;
 
-      tooltipEl.innerHTML = `
-        <div style="font-weight: bold; margin-bottom: 4px; color: var(--accent-blue);">${timeLabel}</div>
-        <div>🌡️ ${t.legend.airTemp}: <b>${airT} ${tempUnit}</b></div>
-        <div>💨 ${t.legend.windSpd}: <b>${windS} ${windUnit}</b> (Raj: ${windG})</div>
-        <div>🌊 ${t.legend.surfHeight}: <b>${surfH} ${heightUnit}</b></div>
-        <div>📈 ${t.legend.tide}: <b>${tideH} ${heightUnit}</b> (ZH)</div>
-        <div>💧 ${t.legend.waterTemp}: <b>${waterT} ${tempUnit}</b></div>
-      `;
+      if (chartNum === 1) {
+        const airT = convertTemp(h.temperature_2m[realIdx]);
+        const windS = convertWind(h.wind_speed_10m[realIdx]);
+        const windG = convertWind(h.wind_gusts_10m[realIdx]);
+
+        tooltipEl.innerHTML = `
+          <div style="font-weight: bold; margin-bottom: 4px; color: var(--accent-blue);">${timeLabel}</div>
+          <div>🌡️ ${t.legend.airTemp}: <b>${airT} ${tempUnit}</b></div>
+          <div>💨 ${t.legend.windSpd}: <b>${windS} ${windUnit}</b></div>
+          <div>🌪️ ${t.legend.gusts}: <b>${windG} ${windUnit}</b></div>
+        `;
+      } else if (chartNum === 2) {
+        const waterT = convertTemp(processedSeaTemps[realIdx]);
+        const surfH = convertDist(m.wave_height[realIdx]);
+        const rawTide = m.sea_level_height_msl ? m.sea_level_height_msl[realIdx] : null;
+        const tideH = rawTide !== null ? convertDist(rawTide + HYDROGRAPHIC_ZERO_OFFSET) : '--';
+
+        tooltipEl.innerHTML = `
+          <div style="font-weight: bold; margin-bottom: 4px; color: var(--accent-blue);">${timeLabel}</div>
+          <div>🌊 ${t.legend.surfHeight}: <b>${surfH} ${heightUnit}</b></div>
+          <div>📈 ${t.legend.tide}: <b>${tideH} ${heightUnit}</b> (ZH)</div>
+          <div>💧 ${t.legend.waterTemp}: <b>${waterT} ${tempUnit}</b></div>
+        `;
+      }
 
       let x = evt.native.clientX + 12;
       let y = evt.native.clientY - 40;
