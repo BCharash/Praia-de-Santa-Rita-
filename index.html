@@ -431,6 +431,7 @@
     canvas {
       width: 100% !important;
       height: 200px !important;
+      touch-action: pan-y;
     }
 
     .floating-tooltip {
@@ -1139,6 +1140,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          events: ['mousemove', 'mouseout', 'touchstart', 'touchmove'],
           interaction: { mode: 'index', intersect: false },
           elements: { point: { radius: 0 } },
           scales: {
@@ -1187,6 +1189,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          events: ['mousemove', 'mouseout', 'touchstart', 'touchmove'],
           interaction: { mode: 'index', intersect: false },
           elements: { point: { radius: 0 } },
           scales: {
