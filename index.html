@@ -355,6 +355,7 @@
       border-bottom: 1px dashed var(--card-border);
       width: 100%;
       box-sizing: border-box;
+      pointer-events: none;
     }
 
     .weather-strip-item {
@@ -1047,6 +1048,21 @@
       tooltipEl.classList.add('visible');
     }
 
+    function hideTooltip() {
+      const tooltipEl = document.getElementById('custom-tooltip');
+      if (tooltipEl) {
+        tooltipEl.classList.remove('visible');
+      }
+      if (chart1Instance) {
+        chart1Instance.setActiveElements([]);
+        chart1Instance.draw();
+      }
+      if (chart2Instance) {
+        chart2Instance.setActiveElements([]);
+        chart2Instance.draw();
+      }
+    }
+
     function renderCustomLegend(chart, containerId) {
       const container = document.getElementById(containerId);
       container.innerHTML = '';
@@ -1220,6 +1236,13 @@
         updateWeatherStripAlignment(stepIndices, times, weatherCodes, isDayList, windDirections);
       }, 50);
     }
+
+    document.addEventListener('pointerdown', (e) => {
+      const isChartTouch = e.target.tagName === 'CANVAS';
+      if (!isChartTouch) {
+        hideTooltip();
+      }
+    });
 
     document.addEventListener('DOMContentLoaded', () => {
       applyLanguageUI();
